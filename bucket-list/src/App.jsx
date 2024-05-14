@@ -1,49 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useRef, useState } from 'react'
 import './App.css'
+import { useReducer } from 'react'
 
 function App() {
-  let [taskArr, setTaskArr] = useState([]);
-  let [task, setTask] = useState("");
-  let [toggle,setToggle]=useState(false)
-  function handleChange(e){
-    // console.log(e.target.value)
-    let task = e.target.value;
-    setTask(task)
+
+  let [name,setName]=useState("");
+  const inputRef=useRef();
+
+  const reducer=(posts,action)=>{
+    switch(action.type){
+      case "ADD_POST":
+        let newPosts=[...posts,action.payload];
+        console.log(newPosts)
+        return newPosts;
+      case "Change_Toggle":
+        // console.log(action.payload)
+        let newPost=posts.map((post,idx)=>{
+          if(action.payload==idx){
+            // post.toggle=!post.toggle;
+            return {...post,toggle:!post.toggle}
+          }
+          return post;
+        });
+        console.log(newPost,"A")
+        return newPost;
+      default:
+        return posts;
+    }
+
   }
 
-  let handleSubmit=(e)=>{
-    e.prevent.Default();
-    let newTask={task:task, toggle:false}
-    setTaskArr([...taskArr,newTask]);
-    console.log(taskArr);
+
+  const [posts, dispatch]=useReducer(reducer,[]);
 
 
+  const handleSubmit=(event)=>{
+    event.preventDefault();
+    dispatch({type:"ADD_POST",payload:{name,toggle:true}});
+    setName("");
   }
 
-  const handleToggle=()=> {
-    setToggle(!Toggle)
+  const handleToggle=(idx)=>{
+    dispatch({type:"Change_Toggle",payload:idx})
   }
+
+  const handleFocus=()=>{
+    inputRef.current.focus()
+  }
+
   return (
     <>
-    <form action="" onSubmit={handleSubmit}>
-      <input type="text" onChange={handleChange}/>
-
-    </form>
-    <div>
-      {taskArr?.map((task)=>{
-        return <div>
-          <h1>{toggle?"This is hidden content":task}</h1>
-          <button onClick={handleToggle}>Toggle</button>
-        </div>
-      })}
-    </div>
-    
-    
+      <form action="" onSubmit={handleSubmit}>
+        <input ref={inputRef} type="text" value={name} onChange={(e)=>setName(e.target.value)}/>
+      </form>
+      {
+         posts?.map((post,idx)=>{
+            return <div className='post-div'>
+              <h1>{post.toggle?post.name:"This is the hidden content"}</h1>
+              <button onClick={()=>handleToggle(idx)}>Toggle</button>
+            </div>
+         })
+      }
+       <button onClick={handleFocus}> Get Back to Writing </button>
     </>
   )
-
 }
 
 export default App
